@@ -1,261 +1,65 @@
-pip install pyspark
-pip install minio
+News Lakehouse Platform
 
-_____GCS_BRONZE_TO_SILVER.PY______
-spark-submit \
-  --packages "org.apache.iceberg:iceberg-spark-runtime-3.5_2.12:1.6.1,com.google.cloud.bigdataoss:gcs-connector:hadoop3-2.2.5" \
-  --conf spark.driver.userClassPathFirst=true \
-  --conf spark.executor.userClassPathFirst=true \
-  --conf spark.sql.catalog.silver=org.apache.iceberg.spark.SparkCatalog \
-  --conf spark.sql.catalog.silver.type=hadoop \
-  --conf spark.sql.catalog.silver.warehouse=gs://my-crawl-bucket-silver/warehouse/ \
-  --conf spark.hadoop.fs.gs.impl=com.google.cloud.hadoop.fs.gcs.GoogleHadoopFileSystem \
-  --conf spark.hadoop.fs.AbstractFileSystem.gs.impl=com.google.cloud.hadoop.fs.gcs.GoogleHadoopFS \
-  --conf spark.hadoop.google.cloud.auth.service.account.enable=true \
-  --conf spark.hadoop.google.cloud.auth.service.account.json.keyfile=/Users/hoangtheduong/Downloads/mythical-bazaar-475215-i7-337ee07f878c.json \
-  /Users/hoangtheduong/Documents/Projects/DA2/spark_jobs/gcs_bronze_to_silver.py
-
-  
+A fully end-to-end data pipeline for collecting, processing, and analyzing Vietnamese news articles.
+This project implements a modern Lakehouse architecture using PySpark, Iceberg, GCS, BigQuery, orchestrated by Airflow, monitored via Prometheus + Grafana, and visualized through Looker dashboards.
 
 
+1. Project Overview
 
-____MỚi nhất_
-$SPARK_HOME/bin/spark-submit \
-  --packages org.apache.iceberg:iceberg-spark-runtime-3.5_2.12:1.6.1,com.google.cloud.bigdataoss:gcs-connector:hadoop3-2.2.22 \
-  --deploy-mode client \
-  --driver-memory 4g \
-  --executor-memory 3g \
-  --conf spark.sql.session.timeZone=Asia/Ho_Chi_Minh \
-  --conf spark.sql.adaptive.enabled=true \
-  --conf spark.sql.shuffle.partitions=200 \
-  --conf spark.serializer=org.apache.spark.serializer.KryoSerializer \
-  --conf spark.kryoserializer.buffer=64m \
-  --conf spark.kryoserializer.buffer.max=256m \
-  --conf spark.network.timeout=600s \
-  --conf spark.executor.heartbeatInterval=60s \
-  --conf spark.hadoop.fs.gs.impl=com.google.cloud.hadoop.fs.gcs.GoogleHadoopFileSystem \
-  --conf spark.hadoop.fs.AbstractFileSystem.gs.impl=com.google.cloud.hadoop.fs.gcs.GoogleHadoopFS \
-  --conf spark.hadoop.google.cloud.auth.service.account.enable=true \
-  --conf spark.hadoop.google.cloud.auth.service.account.json.keyfile="${GOOGLE_APPLICATION_CREDENTIALS}" \
-  --conf spark.hadoop.google.cloud.fs.gs.request.retries=5 \
-  --conf spark.hadoop.google.cloud.fs.gs.request.retry.interval.ms=1000 \
-  --conf spark.sql.extensions=org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions \
-  --conf spark.sql.catalog.silver=org.apache.iceberg.spark.SparkCatalog \
-  --conf spark.sql.catalog.silver.type=hadoop \
-  --conf spark.sql.catalog.silver.warehouse="${ICEBERG_WAREHOUSE}" \
-  --conf spark.sql.streaming.stopGracefullyOnShutdown=true \
-  --conf spark.driver.maxResultSize=1g \
-  /Users/hoangtheduong/Documents/Projects/DA2/spark_jobs/gcs_bronze_to_silver.py
+This platform automatically crawls 20,000+ news articles from VnExpress using multi-threaded Selenium, processes the data through Bronze → Silver → Gold ETL layers, stores curated data in Iceberg tables on GCS, and enables analytics via BigQuery and Looker.
+
+All workflows—crawling, validation, ETL, loading—are scheduled and orchestrated with Airflow, running daily.
+
+The entire system leverages a Lakehouse approach, allowing:
+
+Unified batch processing
+
+Schema evolution
+
+ACID transactions
+
+Time-travel queries
+
+Optimized analytics consumption
 
 
-_____GCS_BRONZE_TO_SILVER.PY______
-$SPARK_HOME/bin/spark-submit \
-  --packages org.apache.iceberg:iceberg-spark-runtime-3.5_2.12:1.6.1,com.google.cloud.bigdataoss:gcs-connector:hadoop3-2.2.22 \
-  --driver-memory 4g \
-  --executor-memory 2g \
-  /Users/hoangtheduong/Documents/Projects/DA2/spark_jobs/gcs_bronze_to_silver.py
+2. Architecture
+<img width="2" height="1" alt="image" src="https://github.com/user-attachments/assets/9e7fa4c9-623c-40ab-8e3b-f613ca5f4681" />
 
 
 
-27/11
-$SPARK_HOME/bin/spark-submit \
-  --master 'local[1]' \
-  --packages org.apache.iceberg:iceberg-spark-runtime-3.5_2.12:1.6.1,com.google.cloud.bigdataoss:gcs-connector:hadoop3-2.2.22 \
-  --conf "spark.driver.extraJavaOptions=-XX:TieredStopAtLevel=1" \
-  --conf "spark.executor.extraJavaOptions=-XX:TieredStopAtLevel=1" \
-  --conf "spark.sql.execution.arrow.pyspark.enabled=false" \
-  --conf "spark.sql.parquet.enableVectorizedReader=false" \
-  --conf "spark.sql.orc.enableVectorizedReader=false" \
-  --conf "spark.sql.codegen.wholeStage=false" \
-  --conf "spark.sql.shuffle.partitions=50" \
-  --driver-memory 4g \
-  --executor-memory 2g \
-  /Users/hoangtheduong/Documents/Projects/DA2/spark_jobs/gcs_bronze_to_silver.py
+3. Tech Stack
 
+Languages & Processing
 
+Python (Selenium, multithreading, logging)
 
+PySpark (ETL, transformations, optimization)
 
+Orchestration
 
+Apache Airflow (DAGs, scheduling, retry, automation)
 
-_____GCS_SILVER_TO_GOLD.PY______
-spark-submit \
-  --master 'local[*]' \
-  --packages "org.apache.iceberg:iceberg-spark-runtime-3.5_2.12:1.6.1,com.google.cloud.bigdataoss:gcs-connector:hadoop3-2.2.5" \
-  --conf spark.driver.userClassPathFirst=true \
-  --conf spark.executor.userClassPathFirst=true \
-  --conf spark.sql.extensions=org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions \
-  --conf spark.sql.catalog.silver=org.apache.iceberg.spark.SparkCatalog \
-  --conf spark.sql.catalog.silver.type=hadoop \
-  --conf spark.sql.catalog.silver.warehouse=gs://my-crawl-bucket-silver/warehouse/ \
-  --conf spark.sql.catalog.gold=org.apache.iceberg.spark.SparkCatalog \
-  --conf spark.sql.catalog.gold.type=hadoop \
-  --conf spark.sql.catalog.gold.warehouse=gs://my-crawl-bucket-gold/warehouse/ \
-  --conf spark.hadoop.fs.gs.impl=com.google.cloud.hadoop.fs.gcs.GoogleHadoopFileSystem \
-  --conf spark.hadoop.fs.AbstractFileSystem.gs.impl=com.google.cloud.hadoop.fs.gcs.GoogleHadoopFS \
-  --conf spark.hadoop.google.cloud.auth.service.account.enable=true \
-  --conf spark.hadoop.google.cloud.auth.service.account.json.keyfile=/Users/hoangtheduong/Downloads/mythical-bazaar-475215-i7-337ee07f878c.json \
-  --conf spark.sql.shuffle.partitions=4 \
-  --driver-memory 4g \
-  --executor-memory 2g \
-  /Users/hoangtheduong/Documents/Projects/DA2/spark_jobs/gcs_silver_to_gold.py
+Lakehouse Storage
 
+Google Cloud Storage (raw + curated zones)
 
+Apache Iceberg (ACID table format, snapshots, schema evolution)
 
+Analytics
 
+BigQuery (query engine)
 
----Mới nhất
-$SPARK_HOME/bin/spark-submit \
-  --packages org.apache.iceberg:iceberg-spark-runtime-3.5_2.12:1.6.1,com.google.cloud.bigdataoss:gcs-connector:hadoop3-2.2.22 \
-  --conf spark.sql.extensions=org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions \
-  --conf spark.sql.catalog.silver=org.apache.iceberg.spark.SparkCatalog \
-  --conf spark.sql.catalog.silver.type=hadoop \
-  --conf spark.sql.catalog.silver.warehouse=$SILVER_WAREHOUSE \
-  --conf spark.sql.catalog.gold=org.apache.iceberg.spark.SparkCatalog \
-  --conf spark.sql.catalog.gold.type=hadoop \
-  --conf spark.sql.catalog.gold.warehouse=$GOLD_WAREHOUSE \
-  --conf spark.hadoop.google.cloud.auth.service.account.enable=true \
-  --conf spark.hadoop.google.cloud.auth.service.account.json.keyfile="$GOOGLE_APPLICATION_CREDENTIALS" \
-  /Users/hoangtheduong/Documents/Projects/DA2/spark_jobs/gcs_silver_to_gold.py
+Looker / Looker Studio (dashboards)
 
+Monitoring
 
-__Mới nhất - ngày 25/11/2025: 00;14
-$SPARK_HOME/bin/spark-submit \
-  --packages org.apache.iceberg:iceberg-spark-runtime-3.5_2.12:1.6.1,com.google.cloud.bigdataoss:gcs-connector:hadoop3-2.2.22 \
-  --driver-memory 4g \
-  --executor-memory 3g \
-  /Users/hoangtheduong/Documents/Projects/DA2/spark_jobs/gcs_silver_to_gold.py
+Prometheus (metrics collection)
 
+Grafana (system dashboards)
 
+Others
 
-27/11
-$SPARK_HOME/bin/spark-submit \
-  --master 'local[1]' \
-  --packages org.apache.iceberg:iceberg-spark-runtime-3.5_2.12:1.6.1,com.google.cloud.bigdataoss:gcs-connector:hadoop3-2.2.22 \
-  --conf "spark.driver.extraJavaOptions=-XX:TieredStopAtLevel=1" \
-  --conf "spark.executor.extraJavaOptions=-XX:TieredStopAtLevel=1" \
-  --conf "spark.sql.execution.arrow.pyspark.enabled=false" \
-  --conf "spark.sql.parquet.enableVectorizedReader=false" \
-  --conf "spark.sql.orc.enableVectorizedReader=false" \
-  --conf "spark.sql.codegen.wholeStage=false" \
-  --driver-memory 4g \
-  --executor-memory 4g \
-  /Users/hoangtheduong/Documents/Projects/DA2/spark_jobs/gcs_silver_to_gold.py
+Docker
 
-
-
-
-
-
-
-
-
-
-
-_____GCS_GOLD_TO_BIGQUERY.PY______
-  spark-submit \
-  --master 'local[*]' \
-  --packages \
-"org.apache.iceberg:iceberg-spark-runtime-3.5_2.12:1.6.1,\
-com.google.cloud.bigdataoss:gcs-connector:hadoop3-2.2.5,\
-com.google.cloud.spark:spark-bigquery-with-dependencies_2.12:0.36.3,\
-com.google.guava:guava:33.3.1-jre" \
-  --conf spark.driver.userClassPathFirst=true \
-  --conf spark.executor.userClassPathFirst=true \
-  --conf spark.sql.extensions=org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions \
-  --conf spark.sql.catalog.gold=org.apache.iceberg.spark.SparkCatalog \
-  --conf spark.sql.catalog.gold.type=hadoop \
-  --conf spark.sql.catalog.gold.warehouse=gs://my-crawl-bucket-gold/warehouse/ \
-  --conf spark.hadoop.fs.gs.impl=com.google.cloud.hadoop.fs.gcs.GoogleHadoopFileSystem \
-  --conf spark.hadoop.fs.AbstractFileSystem.gs.impl=com.google.cloud.hadoop.fs.gcs.GoogleHadoopFS \
-  --conf spark.hadoop.google.cloud.auth.service.account.enable=true \
-  --conf spark.hadoop.google.cloud.auth.service.account.json.keyfile=/Users/hoangtheduong/Downloads/mythical-bazaar-475215-i7-337ee07f878c.json \
-  --conf spark.sql.shuffle.partitions=4 \
-  --driver-memory 4g \
-  --executor-memory 2g \
-  /Users/hoangtheduong/Documents/Projects/DA2/spark_jobs/gold_to_bigquery.py
-
-
-
-------Mới nhất-----
-$SPARK_HOME/bin/spark-submit \
-  --packages \
-org.apache.iceberg:iceberg-spark-runtime-3.5_2.12:1.6.1,\
-com.google.cloud.bigdataoss:gcs-connector:hadoop3-2.2.22,\
-com.google.cloud.spark:spark-bigquery-with-dependencies_2.12:0.38.0 \
-  --repositories https://maven-central.storage-download.googleapis.com/maven2,https://repo1.maven.org/maven2 \
-  --conf spark.sql.extensions=org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions \
-  --conf spark.sql.catalog.gold=org.apache.iceberg.spark.SparkCatalog \
-  --conf spark.sql.catalog.gold.type=hadoop \
-  --conf spark.sql.catalog.gold.warehouse=gs://my-crawl-bucket-gold/warehouse/ \
-  --conf spark.hadoop.google.cloud.auth.service.account.enable=true \
-  --conf spark.hadoop.google.cloud.auth.service.account.json.keyfile="$GOOGLE_APPLICATION_CREDENTIALS" \
-  --conf spark.hadoop.fs.gs.impl=com.google.cloud.hadoop.fs.gcs.GoogleHadoopFileSystem \
-  --conf spark.hadoop.fs.AbstractFileSystem.gs.impl=com.google.cloud.hadoop.fs.gcs.GoogleHadoopFS \
-  --driver-memory 4g \
-  --executor-memory 2g \
-  /Users/hoangtheduong/Documents/Projects/DA2/spark_jobs/gold_to_bigquery.py
-
-
---MỚI NHẤT 25/11/2025
-$SPARK_HOME/bin/spark-submit \
-  --packages \
-org.apache.iceberg:iceberg-spark-runtime-3.5_2.12:1.6.1,\
-com.google.cloud.bigdataoss:gcs-connector:hadoop3-2.2.22,\
-com.google.cloud.spark:spark-bigquery-with-dependencies_2.12:0.38.0 \
-  --driver-memory 4g \
-  --executor-memory 2g \
-  /Users/hoangtheduong/Documents/Projects/DA2/spark_jobs/gold_to_bigquery.py
-
-
-
-27/11
-$SPARK_HOME/bin/spark-submit \
-  --master 'local[1]' \
-  --packages \
-org.apache.iceberg:iceberg-spark-runtime-3.5_2.12:1.6.1,\
-com.google.cloud.bigdataoss:gcs-connector:hadoop3-2.2.22,\
-com.google.cloud.spark:spark-bigquery-with-dependencies_2.12:0.38.0 \
-  --conf "spark.driver.extraJavaOptions=-XX:TieredStopAtLevel=1" \
-  --conf "spark.executor.extraJavaOptions=-XX:TieredStopAtLevel=1" \
-  --conf "spark.sql.execution.arrow.pyspark.enabled=false" \
-  --conf "spark.sql.parquet.enableVectorizedReader=false" \
-  --conf "spark.sql.orc.enableVectorizedReader=false" \
-  --conf "spark.sql.codegen.wholeStage=false" \
-  --driver-memory 4g \
-  --executor-memory 4g \
-  /Users/hoangtheduong/Documents/Projects/DA2/spark_jobs/gold_to_bigquery.py
-
-
-
-pkill -9 python
-pkill -9 chromedriver
-pkill -9 "Google Chrome"
-
-
-taskkill /IM chromedriver.exe /F
-taskkill /IM chrome.exe /F
-taskkill /IM python.exe /F
-
-_CONSOLE SPARK
-$SPARK_HOME/bin/pyspark \
-  --packages org.apache.iceberg:iceberg-spark-runtime-3.5_2.12:1.6.1,com.google.cloud.bigdataoss:gcs-connector:hadoop3-2.2.22 \
-  --conf spark.sql.extensions=org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions \
-  --conf spark.sql.catalog.gold=org.apache.iceberg.spark.SparkCatalog \
-  --conf spark.sql.catalog.gold.type=hadoop \
-  --conf spark.sql.catalog.gold.warehouse=gs://my-crawl-bucket-gold/warehouse/ \
-  --conf spark.hadoop.fs.gs.impl=com.google.cloud.hadoop.fs.gcs.GoogleHadoopFileSystem \
-  --conf spark.hadoop.fs.AbstractFileSystem.gs.impl=com.google.cloud.hadoop.fs.gcs.GoogleHadoopFS \
-  --conf spark.hadoop.google.cloud.auth.service.account.enable=true \
-  --conf spark.hadoop.google.cloud.auth.service.account.json.keyfile=$GOOGLE_APPLICATION_CREDENTIALS
-
-
-$SPARK_HOME/bin/pyspark \
-  --packages org.apache.iceberg:iceberg-spark-runtime-3.5_2.12:1.6.1,com.google.cloud.bigdataoss:gcs-connector:hadoop3-2.2.22 \
-  --conf spark.sql.extensions=org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions \
-  --conf spark.sql.catalog.gold=org.apache.iceberg.spark.SparkCatalog \
-  --conf spark.sql.catalog.gold.type=hadoop \
-  --conf spark.sql.catalog.gold.warehouse=gs://my-crawl-bucket-silver/warehouse/ \
-  --conf spark.hadoop.fs.gs.impl=com.google.cloud.hadoop.fs.gcs.GoogleHadoopFileSystem \
-  --conf spark.hadoop.fs.AbstractFileSystem.gs.impl=com.google.cloud.hadoop.fs.gcs.GoogleHadoopFS \
-  --conf spark.hadoop.google.cloud.auth.service.account.enable=true \
-  --conf spark.hadoop.google.cloud.auth.service.account.json.keyfile=$GOOGLE_APPLICATION_CREDENTIALS
+Linux / Bash
