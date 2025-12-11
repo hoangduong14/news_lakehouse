@@ -1,0 +1,26 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+  external_labels:
+    monitor: 'lakehouse-monitoring'
+
+scrape_configs:
+  # 1. Giám sát chính Prometheus
+  - job_name: 'prometheus'
+    static_configs:
+      - targets:
+          - 'prometheus:9090'
+
+  # 2. Giám sát tài nguyên container qua cAdvisor
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets:
+          - 'cadvisor:8080'
+
+  # 3. Lấy metrics từ Pushgateway (các job ETL đẩy lên)
+  - job_name: 'pushgateway'
+    honor_labels: true
+    static_configs:
+      - targets:
+          - 'pushgateway:9091'

@@ -1,0 +1,21 @@
+# --- Spark / Iceberg / PyArrow ---
+# pyspark==3.5.0
+pyarrow==16.1.0
+pandas==2.2.2
+
+# --- Iceberg Python client (optional but useful) ---
+pyiceberg==0.7.0
+
+# --- Google Cloud Packages (for GCS, BigQuery, auth) ---
+google-cloud-storage==2.14.0
+google-cloud-bigquery==3.21.0
+google-auth==2.33.0
+google-auth-oauthlib==1.2.0
+gcsfs==2024.10.0
+
+# --- For BigQuery Spark connector usage in Python side (helper) ---
+google-cloud-bigquery-storage==2.25.0
+
+# --- Common utilities ---
+requests
+python-dotenv

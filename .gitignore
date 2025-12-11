@@ -1,0 +1,31 @@
+# Python cache
+__pycache__/
+*.pyc
+
+# Data + large files
+*.parquet
+*.csv
+*.json
+*.log
+*.tgz
+*.tar.gz
+
+# Spark & warehouse
+spark-warehouse/
+metastore_db/
+checkpoint/
+checkpoints/
+
+# Airflow logs
+logs/
+airflow/logs/
+
+# Credentials
+*.env
+*.pem
+*.key
+*.json
+
+# Docker large binaries
+*.raw
+*.img

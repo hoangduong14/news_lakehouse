@@ -1,0 +1,7 @@
+pyspark==3.5.1
+tenacity
+google-cloud-storage
+google-cloud-bigquery
+google-cloud-core
+pyarrow
+pandas
